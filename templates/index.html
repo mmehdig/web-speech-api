@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+		<!-- Optional theme -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+		<style type="text/css">
+		button, .dropdown {
+			display: inline-block;
+		}
+		</style>
+		<!-- Latest compiled and minified JavaScript -->
+		<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+		<script type="text/javascript">
+			SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+			var recognizer = new SpeechRecognition();
+			recognizer.maxAlternatives = 10;
+			recognizer.continuous = true;
+			recognizer.interimResults = true;
+			recognizer.onresult = function(e) {
+				document.getElementById("target").appendChild(document.createElement('hr'));
+				var uniqueId, el, wrapper;
+				for (j=0; j<e.results.length; j++)
+				{
+					result = e.results[j];
+					console.log(result);
+
+					uniqueId = "ui-" + (new Date()).getTime();
+					wrapper = document.createElement('div');
+					wrapper.setAttribute('class', 'dropdown');
+					el = document.createElement('button');
+					el.setAttribute('id', uniqueId);
+					if (result[0].confidence > 0.8) {
+						el.setAttribute('class', 'btn btn-success');
+					} else {
+						if (result[0].confidence > 0.60) {
+							el.setAttribute('class', 'btn btn-warning');
+						} else {
+							el.setAttribute('class', 'btn btn-danger');
+						}
+					}
+					
+					el.setAttribute('data-toggle', 'dropdown');
+					el.setAttribute('aria-haspopup', 'true');
+					el.textContent = result[0].transcript + ' ';
+					
+					conf = document.createElement('span');
+					conf.setAttribute('class', 'badge');
+					conf.textContent = result[0].confidence.toFixed(2);
+					el.appendChild(conf);
+
+					menu = document.createElement('ul');
+					menu.setAttribute('class', 'dropdown-menu');
+					menu.setAttribute('aria-labelledby', uniqueId);
+					for (i=1; i < result.length; i++){
+						menuItem = document.createElement('li');
+						menuItem.textContent = result[i].transcript;
+						menu.appendChild(menuItem);
+					};
+					wrapper.appendChild(el);
+					wrapper.appendChild(menu);
+					document.getElementById("target").appendChild(wrapper);
+				}
+			};
+
+			recognizer.onend = function(e) {
+				recognizer.isStarted = false;
+				$("#record-btn").removeClass('btn-primary').addClass('btn-default');
+			};
+
+			recognizer.onstart = function(e) {
+				recognizer.isStarted = true;
+				$("#record-btn").removeClass('btn-default').addClass('btn-primary');
+			};
+
+			recognizer.isStarted = false;
+
+			$(function(){
+				$("#record-btn").on('click', function(e) {
+					if (recognizer.isStarted) {
+						recognizer.stop();
+					} else {
+						recognizer.start();
+					}
+				})
+			});
+		</script>
+	</head>
+	<body>
+		<div class="container">
+			<h1>SpeechRecognition</h1>
+			<button id="record-btn" class="btn btn-default" type="button"><span class="glyphicon glyphicon-record" aria-hidden="true"></span></button>
+			<br /><br />
+			<div class="panel panel-default">
+				<div class="panel-body" id="target"></div>
+			</div>
+		</div>
+	</body>
+</html>
